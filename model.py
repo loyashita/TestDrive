@@ -36,7 +36,7 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma4:e4b")
 
 # GUARDRAILS 4.3 — timeouts per backend (seconds)
-GEMINI_TIMEOUT = 60
+GEMINI_TIMEOUT = 120   # was 60: Gemma 4 on the API timed out on 1 of 12 real calls
 OLLAMA_TIMEOUT = 180
 
 # GUARDRAILS 4.7 — temperature presets (callers pick the right one)

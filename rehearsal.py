@@ -178,7 +178,8 @@ def run_drive(crowd: dict, decision: dict, progress=None) -> dict:
             if "_warning" in r:
                 continue   # GUARDRAILS 4.1: fallbacks change nothing
             cs = state[c["id"]]
-            new_trust = engine.update_trust(cs["trust"], r["sentiment"], r["action"], r["voice"])
+            new_trust = engine.update_trust(cs["trust"], r["sentiment"], r["action"], r["voice"],
+                                       is_price=perceptions[i]["is_price"])
             cs["trust"] = new_trust
             cs["trust_history"].append(new_trust)
             cs["outlook"] = r["updated_outlook"] or cs["outlook"]

@@ -77,6 +77,16 @@ def _change_feel(change_tolerance: float) -> str:
     return "You're usually open to change."
 
 
+def _is_exit(action: str, is_price: bool) -> bool:
+    """
+    Hirschman "exit". On a price decision, switch = go to a competitor = exit.
+    On a non-price decision the prompt defines switch as "find a workaround",
+    which is still participating, so only drop_out counts as exit there.
+    (Deviation from SPEC §10.3/10.4, found when all 6 "switched" on drive 3.)
+    """
+    return action == "drop_out" or (action == "switch" and is_price)
+
+
 def _is_valid_price(price) -> bool:
     """GUARDRAILS 5.1 — price must be a number in (0, 100 000]."""
     try:
@@ -340,7 +350,7 @@ def compute_metrics(
         action = reaction.get("action", "keep")
         voice = reaction.get("voice", "silent")
         sentiment = int(reaction.get("sentiment", 0))
-        is_exit = action in ("switch", "drop_out")
+        is_exit = _is_exit(action, is_price)
 
         if is_exit:
             exits.append(reaction)
@@ -405,7 +415,8 @@ def compute_metrics(
 # §10.4  update_trust
 # ---------------------------------------------------------------------------
 
-def update_trust(trust: float, sentiment: int, action: str, voice: str) -> float:
+def update_trust(trust: float, sentiment: int, action: str, voice: str,
+                 is_price: bool = True) -> float:
     """
     SPEC §10.4 — update trust after a reaction.
     Rounded to 1 decimal, clamped to [0, 10].
@@ -413,7 +424,7 @@ def update_trust(trust: float, sentiment: int, action: str, voice: str) -> float
     The 0.5 multiplier: trust moves slower than sentiment — one bad
     experience doesn't destroy a relationship, but exit nearly does.
     """
-    is_exit = action in ("switch", "drop_out")
+    is_exit = _is_exit(action, is_price)
     is_defend = voice == "defend"
     new_trust = (
         trust
