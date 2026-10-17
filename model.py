@@ -11,35 +11,49 @@ Key concept: Structured output / why we can't trust model JSON
   wrap it in ```json fences, leave trailing commas, miss required fields, or
   use wrong enum values. We always parse and validate; we never assume the
   output is correct. That's what the retry loop is for.
+
+GUARDRAILS retrofitted here:
+  1.2 — API errors are caught and re-raised without exposing the key.
+  4.3 — Timeouts: 60 s Gemini, 180 s Ollama.
+  4.4 — 429 rate-limit: back off 2 s then 5 s before giving up.
+  4.7 — Temperature defaults: 0.9 citizens/headline, 0.2 extraction/director.
 """
 
+import concurrent.futures
 import json
 import os
 import re
+import time
 
 from dotenv import load_dotenv
 
-load_dotenv()  # reads .env into os.environ
+load_dotenv()
 
 # --- backend config ----------------------------------------------------------
-# MODEL_BACKEND switches between "gemini" (fast, needs API key) and
-# "ollama" (local, no internet). Set in .env; default is gemini.
 MODEL_BACKEND = os.getenv("MODEL_BACKEND", "gemini")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma4:e4b")
 
-# Retry suffix from PROMPTS.md section 5 — copied exactly, not paraphrased.
-# {error} is filled in with what went wrong so the model can self-correct.
+# GUARDRAILS 4.3 — timeouts per backend (seconds)
+GEMINI_TIMEOUT = 60
+OLLAMA_TIMEOUT = 180
+
+# GUARDRAILS 4.7 — temperature presets (callers pick the right one)
+TEMP_CITIZEN = 0.9    # creative, in-character
+TEMP_EXTRACT = 0.2    # deterministic: extraction, director, validation-sensitive
+TEMP_HEADLINE = 0.9
+
+# Retry suffix from PROMPTS.md §5 — copied exactly.
 RETRY_SUFFIX = (
     "\n\nYour previous response was invalid: {error}\n"
     "Return ONLY a valid JSON object with exactly the required fields "
     "and allowed values. No other text."
 )
 
-# Fallback dict returned when all retries fail.
-# The "_warning" key signals to callers that this is synthetic, not real.
-# Rule: fallback reactions write no memory (checked by rehearsal.py later).
+# Fallback returned when all retries fail.
+# The "_warning" key signals: fallback reactions must NOT write memory
+# or update trust (checked by rehearsal.py).
 FALLBACK = {
     "action": "keep",
     "reduce_level": None,
@@ -50,21 +64,17 @@ FALLBACK = {
     "reason": "",
     "memory_note": "",
     "updated_outlook": "",
-    "_warning": "fallback",  # overwritten with details below
+    "_warning": "fallback",
 }
 
 
 # --- helpers -----------------------------------------------------------------
 
 def _strip_fences(text: str) -> str:
-    """
-    Remove ```json ... ``` or ``` ... ``` wrappers that models add.
-    We do this defensively even when json_mode=True, because some models
-    ignore the instruction.
-    """
+    """Remove ```json ... ``` wrappers that models add even when told not to."""
     text = text.strip()
-    text = re.sub(r"^```[a-z]*\n?", "", text)   # opening fence
-    text = re.sub(r"\n?```$", "", text)           # closing fence
+    text = re.sub(r"^```[a-z]*\n?", "", text)
+    text = re.sub(r"\n?```$", "", text)
     return text.strip()
 
 
@@ -74,28 +84,35 @@ def _parse_json(text: str) -> dict:
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError as e:
-        # Keep the raw text short so it fits in a retry prompt
         raise ValueError(f"JSON parse error ({e}). Got: {cleaned[:200]!r}")
+
+
+def _run_with_timeout(fn, timeout_s, *args, **kwargs):
+    """
+    Run fn(*args, **kwargs) in a thread and raise TimeoutError if it takes
+    longer than timeout_s seconds. Cross-platform (no signal tricks needed).
+    """
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+        fut = ex.submit(fn, *args, **kwargs)
+        try:
+            return fut.result(timeout=timeout_s)
+        except concurrent.futures.TimeoutError:
+            raise TimeoutError(f"Model call timed out after {timeout_s}s")
 
 
 # --- backend calls -----------------------------------------------------------
 
-def _call_gemini(prompt: str, image=None, json_mode: bool = True,
-                 temperature: float = 0.7) -> str:
-    """Send prompt (+optional image bytes) to Gemini. Returns raw text."""
+def _gemini_inner(prompt, image, json_mode, temperature):
+    """The actual Gemini call — wrapped by _call_gemini for timeout + error handling."""
     from google import genai
     from google.genai import types
 
     client = genai.Client(api_key=GEMINI_API_KEY)
     config = types.GenerateContentConfig(
         temperature=temperature,
-        # Tells Gemini to constrain its output to valid JSON — faster and
-        # cleaner than hoping it wraps correctly on its own.
         response_mime_type="application/json" if json_mode else "text/plain",
     )
-
     if image is not None:
-        # Detect PNG vs JPEG by magic bytes so callers don't have to care.
         mime = "image/png" if image[:4] == b"\x89PNG" else "image/jpeg"
         parts = [types.Part.from_bytes(data=image, mime_type=mime), prompt]
         response = client.models.generate_content(
@@ -105,13 +122,32 @@ def _call_gemini(prompt: str, image=None, json_mode: bool = True,
         response = client.models.generate_content(
             model=GEMINI_MODEL, contents=prompt, config=config
         )
-
     return response.text
 
 
-def _call_ollama(prompt: str, image=None, json_mode: bool = True,
-                 temperature: float = 0.7) -> str:
-    """Send prompt (+optional image bytes) to Ollama. Returns raw text."""
+def _call_gemini(prompt, image=None, json_mode=True, temperature=TEMP_CITIZEN):
+    """
+    Send prompt to Gemini with a 60 s timeout.
+    GUARDRAILS 1.2: catches exceptions and re-raises without exposing the key.
+    GUARDRAILS 4.4: raises RateLimitError on 429 so call_model can back off.
+    """
+    try:
+        return _run_with_timeout(
+            _gemini_inner, GEMINI_TIMEOUT, prompt, image, json_mode, temperature
+        )
+    except TimeoutError:
+        raise  # re-raise as-is for call_model to count as a failed attempt
+    except Exception as e:
+        msg = str(e)
+        # GUARDRAILS 4.4 — detect rate limit
+        if "429" in msg or "RESOURCE_EXHAUSTED" in msg or "quota" in msg.lower():
+            raise RateLimitError("Gemini rate-limited (429). Switch to Ollama or wait.")
+        # GUARDRAILS 1.2 — never expose the raw error (it may contain headers/key info)
+        raise ValueError(f"Gemini API error — check key/quota. ({type(e).__name__})")
+
+
+def _ollama_inner(prompt, image, json_mode, temperature):
+    """The actual Ollama call — wrapped by _call_ollama for timeout + error handling."""
     import base64
     import ollama
 
@@ -121,12 +157,28 @@ def _call_ollama(prompt: str, image=None, json_mode: bool = True,
         "options": {"temperature": temperature},
     }
     if json_mode:
-        kwargs["format"] = "json"  # Ollama's equivalent of response_mime_type
+        kwargs["format"] = "json"
     if image is not None:
         kwargs["images"] = [base64.b64encode(image).decode()]
 
     response = ollama.generate(**kwargs)
     return response.response
+
+
+def _call_ollama(prompt, image=None, json_mode=True, temperature=TEMP_CITIZEN):
+    """Send prompt to Ollama with a 180 s timeout."""
+    try:
+        return _run_with_timeout(
+            _ollama_inner, OLLAMA_TIMEOUT, prompt, image, json_mode, temperature
+        )
+    except TimeoutError:
+        raise
+    except Exception as e:
+        raise ValueError(f"Ollama error — is it running? ({type(e).__name__})")
+
+
+class RateLimitError(Exception):
+    """Raised on HTTP 429 / RESOURCE_EXHAUSTED so call_model can back off."""
 
 
 # --- public API --------------------------------------------------------------
@@ -135,7 +187,7 @@ def call_model(
     prompt: str,
     image=None,
     json_mode: bool = True,
-    temperature: float = 0.7,
+    temperature: float = TEMP_CITIZEN,
     validate=None,
 ) -> dict:
     """
@@ -144,26 +196,25 @@ def call_model(
     Args:
         prompt:      Full prompt string.
         image:       Optional raw image bytes (for multimodal calls).
-        json_mode:   Ask the backend to return JSON. True for all structured
-                     calls; only False for free-text (not used here yet).
-        temperature: 0 = deterministic, 1 = creative.
-                     Use ~0.9 for citizens and headline, ~0.2 for extraction
-                     and director (we want consistent logic there).
+        json_mode:   Ask the backend to return JSON.
+        temperature: Use TEMP_CITIZEN (0.9) for reactions/headline,
+                     TEMP_EXTRACT (0.2) for extraction and director.
         validate:    Optional function(dict) -> str | None.
-                     Return an error string if something is wrong, None if OK.
-                     On failure we retry up to 2x with RETRY_SUFFIX attached.
+                     Return an error string if invalid, None if OK.
+                     On failure: retry ×2 with RETRY_SUFFIX, then fallback.
 
     Returns:
         Parsed dict on success.
-        FALLBACK dict (with "_warning" key) if all 3 attempts fail.
-        Fallback reactions must NOT write memory — callers check for "_warning".
+        FALLBACK dict (with "_warning") if all 3 attempts fail.
+        Callers must check for "_warning" and skip memory/trust updates.
     """
     _call = _call_gemini if MODEL_BACKEND == "gemini" else _call_ollama
 
     current_prompt = prompt
     last_error = None
+    backoff_delays = [2, 5]  # GUARDRAILS 4.4 — back-off schedule for 429
 
-    for attempt in range(3):  # attempt 0 = first try; 1, 2 = retries
+    for attempt in range(3):
         try:
             raw = _call(current_prompt, image=image, json_mode=json_mode,
                         temperature=temperature)
@@ -174,36 +225,36 @@ def call_model(
                 if error:
                     raise ValueError(error)
 
-            return result  # all good
+            return result  # success
 
-        except ValueError as e:
+        except RateLimitError as e:
+            # GUARDRAILS 4.4 — wait then retry; after 2 waits, fall through to fallback
             last_error = str(e)
             if attempt < 2:
-                # Send the error back to the model so it can self-correct.
-                # This is the retry loop — we don't change the original prompt,
-                # we append what went wrong so the model sees its own mistake.
+                delay = backoff_delays[attempt]
+                print(f"[rate-limit] {e} — waiting {delay}s...")
+                time.sleep(delay)
+                # Don't append RETRY_SUFFIX for rate-limit; the prompt was fine
+
+        except (ValueError, TimeoutError) as e:
+            last_error = str(e)
+            if attempt < 2:
                 current_prompt = prompt + RETRY_SUFFIX.format(error=last_error)
 
-    # All 3 attempts failed. Return a flagged fallback so the UI can show "⚠"
-    # and rehearsal.py knows not to write this to memory.
+    # All 3 attempts failed — flagged fallback, caller must not write memory
     fallback = dict(FALLBACK)
-    fallback["_warning"] = (
-        f"⚠ model fallback after 3 attempts — last error: {last_error}"
-    )
+    fallback["_warning"] = f"⚠ model fallback after 3 attempts — {last_error}"
     return fallback
 
 
 # --- quick self-test ---------------------------------------------------------
-# Run:  python model.py           → tests whatever MODEL_BACKEND is in .env
-#       python model.py gemini    → force Gemini
-#       python model.py ollama    → force Ollama
-# Done when: the same prompt returns parsed JSON on both backends.
+# python model.py           → uses MODEL_BACKEND from .env
+# python model.py gemini    → force Gemini
+# python model.py ollama    → force Ollama
 
 if __name__ == "__main__":
     import sys
 
-    # Allow overriding the backend from the command line for this test only.
-    # This works because call_model reads MODEL_BACKEND as a global at call time.
     if len(sys.argv) > 1 and sys.argv[1] in ("gemini", "ollama"):
         MODEL_BACKEND = sys.argv[1]
 
@@ -214,14 +265,11 @@ if __name__ == "__main__":
     )
 
     def _validate_test(d: dict):
-        """Check both expected fields are present."""
         missing = [f for f in ("name", "mood") if f not in d]
-        if missing:
-            return f"Missing fields: {missing}"
-        return None
+        return f"Missing fields: {missing}" if missing else None
 
     print(f"Testing backend: {MODEL_BACKEND}")
-    result = call_model(TEST_PROMPT, temperature=0.7, validate=_validate_test)
+    result = call_model(TEST_PROMPT, temperature=TEMP_CITIZEN, validate=_validate_test)
 
     if "_warning" in result:
         print(f"FAILED: {result['_warning']}")

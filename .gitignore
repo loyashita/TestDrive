@@ -3,6 +3,18 @@
 
 # Runtime memory — generated per session, not source code
 memory/*.json
+memory/*.bak
+memory/*.tmp
+
+# Debug logs (GUARDRAILS 1.3)
+logs/
+
+# Uploaded images — kept in memory only, never written to disk;
+# if any temp file ever lands here, keep it out of git
+*.jpg
+*.jpeg
+*.png
+*.webp
 
 # Python bytecode
 __pycache__/
