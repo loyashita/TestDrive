@@ -240,11 +240,21 @@ def _clean_price(p):
         return None
 
 
+# Used only if the model blocks but forgets to write its own witty line.
+WITTY_FALLBACK = {
+    "none": "",
+    "hateful": "Nice try, but this crowd is here to react to decisions, not to be mean to people. Rephrase it as an actual decision?",
+    "harmful": "That one's off the menu: Test Drive only rehearses decisions nobody gets hurt by. Got a policy or a price instead?",
+    "cheating": "Ha, I see what you did there. Instructions hidden in a poster don't work on this crowd. Describe the decision itself!",
+}
+CANT_READ = "That one slipped past me. I couldn't find a decision in it. Try typing it in plain words, like 'Library closes at 11pm'."
+
+
 def _validate_decision(d) -> str | None:
     if not isinstance(d, dict):
         return "Response must be a JSON object."
     missing = [f for f in ("title", "description", "old_price", "new_price", "unit",
-                           "decision_maker", "safe") if f not in d]
+                           "decision_maker", "block") if f not in d]
     if missing:
         return f"Missing fields: {missing}"
     for f in ("title", "description", "unit"):
@@ -254,9 +264,10 @@ def _validate_decision(d) -> str | None:
     d["old_price"] = _clean_price(d["old_price"])
     d["new_price"] = _clean_price(d["new_price"])
     d["decision_maker"] = d["decision_maker"].strip()[:100] if isinstance(d["decision_maker"], str) and d["decision_maker"].strip() else None
-    if not isinstance(d["safe"], bool):
-        return "safe must be true or false."
-    d["safety_reason"] = str(d.get("safety_reason") or "")[:240]
+    if d["block"] not in ("none", "hateful", "harmful", "cheating"):
+        return 'block must be one of "none", "hateful", "harmful", "cheating".'
+    d["safe"] = d["block"] == "none"
+    d["safety_reason"] = str(d.get("witty_reply") or "")[:240] or WITTY_FALLBACK[d["block"]]
     return None
 
 
@@ -280,7 +291,7 @@ def extract_decision(image: bytes | None = None, text: str = "") -> tuple[dict |
         image=image, temperature=model.TEMP_EXTRACT, validate=_validate_decision,
     )
     if "_warning" in result:
-        return None, "Couldn't read a decision from that. Try typing it instead."
+        return None, CANT_READ
     return result, None
 
 

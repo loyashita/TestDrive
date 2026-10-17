@@ -118,7 +118,7 @@ def run_job(job):
             ss.messages.append(("error", err))
             return
         if not decision["safe"]:   # GUARDRAILS 3.1
-            ss.messages.append(("error", f"Test Drive can't rehearse this one: {decision['safety_reason']}"))
+            ss.messages.append(("info", decision["safety_reason"]))
             return
         if job["old"] > 0:
             decision["old_price"] = job["old"]
@@ -159,7 +159,7 @@ if ss.running:
     st.rerun()
 
 for kind, msg in ss.messages:
-    (st.error if kind == "error" else st.warning)(msg)
+    {"error": st.error, "info": st.info}.get(kind, st.warning)(msg)
 ss.messages = []
 
 
