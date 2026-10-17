@@ -1,0 +1,13 @@
+# Secrets — never commit these
+.env
+
+# Runtime memory — generated per session, not source code
+memory/*.json
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# OS noise
+.DS_Store
+Thumbs.db

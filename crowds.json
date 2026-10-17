@@ -1,0 +1,232 @@
+{
+  "crowds": [
+    {
+      "id": "bits_goa",
+      "title": "BITS Goa",
+      "description": "Six BITS Pilani K K Birla Goa Campus students. Test any campus decision on them: prices, rules, timings, policies, events.",
+      "decision_maker_default": "the people who run campus life (administration, Student Union, clubs and fest committees)",
+      "citizens": [
+        {
+          "id": "c1",
+          "name": "Ananya Krishnan",
+          "age": 18,
+          "role": "First-year B.E. Electronics & Communication, from Madurai, in a girls' hostel, on a merit scholarship",
+          "voice_style": "Soft Tamil-English, lots of 'actually' and 'no no it's fine', apologises before disagreeing",
+
+          "personality": "Bright, eager, over-apologises. Laughs a second late in groups while she checks whether the joke was about her.",
+          "core_values": ["belonging", "not being a burden", "approval from people she admires"],
+          "constraints": [
+            "Scholarship renews only if her CGPA stays above 8",
+            "Paying back a ₹3,200 debt at ₹400 a month that nobody knows about",
+            "Calls home at 9:30 every night, without fail"
+          ],
+          "stakes": "Her scholarship, and finally finding 'her people' two months into college",
+          "rule_attitude": "Follows every rule anxiously; always assumes she'll be the one who gets caught",
+          "social_role": "Follower: quietly mirrors whoever seems most confident in the room",
+          "change_tolerance": 0.35,
+          "triggers": ["being singled out in front of others", "anything she'd have to explain at home", "plans changed at the last minute"],
+          "soft_spots": ["being personally invited", "being given a small responsibility", "anything that makes her feel needed"],
+          "secret": "During orientation she bought ₹3,200 sneakers on a friend's card so she wouldn't look different. She's still paying it back, and her family thinks she hasn't spent a rupee beyond mess fees.",
+          "contradiction": "Types 'it's fine yaar' in every group chat, then spends forty minutes alone replaying whether she said something wrong.",
+          "line_wont_cross": "Asking her parents for money. Her father took a loan for her laptop.",
+          "what_wins_them_back": "Being included in a way that doesn't look like charity or special treatment.",
+
+          "monthly_budget": 2300,
+          "notice_threshold": 0.04,
+          "pain_threshold": 0.03,
+          "loss_aversion": 2.6,
+          "fairness_weight": 0.30,
+          "price_anchor": 1.0,
+          "usage": { "default": 1, "fest pass": 1, "cup of chai": 14, "night canteen order": 3 },
+
+          "starting_trust": 6,
+          "starting_outlook": "If I show up to enough things, I'll stop feeling like a guest here.",
+          "backstory_memory": "Skipped orientation night because the cab back cost ₹380 and everyone else had already split an SUV."
+        },
+        {
+          "id": "c2",
+          "name": "Siddharth Rao",
+          "age": 21,
+          "role": "Final-year B.E. Mechanical, from Hyderabad, family runs a hotel chain",
+          "voice_style": "Polished English in LinkedIn-ready sentences; drops into Telugu when he's actually upset",
+
+          "personality": "Charming, articulate, generous. Genuinely angry about exclusion, and also enjoys being the one who's angry about it.",
+          "core_values": ["fairness", "being seen as principled", "freedom from his family's script"],
+          "constraints": [
+            "Placement interviews start in three weeks",
+            "His father calls every Sunday to ask about 'the family business plan'"
+          ],
+          "stakes": "His reputation as the conscience of the batch, and a family job he doesn't want but probably can't refuse",
+          "rule_attitude": "Questions every rule out loud; quietly follows the ones that don't cost him anything",
+          "social_role": "Leader: people screenshot his messages and forward them",
+          "change_tolerance": 0.70,
+          "triggers": ["decisions made without asking students", "anything that shuts out someone with less money", "being called privileged"],
+          "soft_spots": ["transparency", "being consulted before a decision", "public credit for a fix he pushed for"],
+          "secret": "His family's hotel chain quietly pulled its sponsorship of campus events this year after his father's petty dispute with the institute. Part of what students now pay for, or go without, is because of his family. He knows. Nobody else does.",
+          "contradiction": "Will lead a public boycott on principle, and privately still enjoy the perks his family name gets him.",
+          "line_wont_cross": "Being called 'daddy's money'. He overcorrects by being the loudest voice on fairness.",
+          "what_wins_them_back": "Open books and a real say. Show the reasoning, ask students first, and let him champion the fix.",
+
+          "monthly_budget": 31000,
+          "notice_threshold": 0.60,
+          "pain_threshold": 0.25,
+          "loss_aversion": 1.3,
+          "fairness_weight": 0.95,
+          "price_anchor": 0.85,
+          "usage": { "default": 1, "fest pass": 1, "cup of chai": 30, "night canteen order": 11 },
+
+          "starting_trust": 3,
+          "starting_outlook": "Campus decisions get made for sponsors and admins, not for students.",
+          "backstory_memory": "In first year, the whole wing went to the fest together, including the guy on full scholarship. It hasn't felt like that since."
+        },
+        {
+          "id": "c3",
+          "name": "Meghna Bhattacharya",
+          "age": 20,
+          "role": "Third-year M.Sc. Economics dual degree, from Kolkata, Student Union treasurer",
+          "voice_style": "Crisp Bengali-English, a number in every sentence, goes very calm when angry",
+
+          "personality": "Spreadsheet-precise, fiercely responsible, defensive under pressure. Cries in the washroom, then walks back out and answers every question perfectly.",
+          "core_values": ["competence", "responsibility", "not being blamed for things she didn't decide alone"],
+          "constraints": [
+            "Sits on four committees",
+            "Sleeps about five hours a night",
+            "CGPA has slid from 9.1 to 7.8 this year"
+          ],
+          "stakes": "Her name is on every budget, and she wants to run for Student Union president next year",
+          "rule_attitude": "Writes the rules and believes in process, because chaos genuinely frightens her",
+          "social_role": "Insider: decisions pass through her hands before anyone else sees them",
+          "change_tolerance": 0.50,
+          "triggers": ["people complaining without reading the numbers", "being made the face of a group decision", "last-minute changes she'll have to fix at 2am"],
+          "soft_spots": ["someone saying a real thank you", "people asking 'how can I help'", "good data"],
+          "secret": "Last year's committee, which she was on, overpaid a sound vendor and left a ₹2.1 lakh hole. Several of this year's 'cost increases' are quietly filling it. She also doesn't know why the biggest sponsor walked away, and it terrifies her.",
+          "contradiction": "Defends every decision as 'just covering costs'. That's true, but some of those costs are her own mistake.",
+          "line_wont_cross": "Letting anything collapse on her watch.",
+          "what_wins_them_back": "People engaging with the real numbers and not making it personal.",
+
+          "monthly_budget": 6400,
+          "notice_threshold": 0.15,
+          "pain_threshold": 0.08,
+          "loss_aversion": 1.8,
+          "fairness_weight": 0.50,
+          "price_anchor": 1.15,
+          "usage": { "default": 1, "fest pass": 1, "cup of chai": 45, "night canteen order": 9 },
+
+          "starting_trust": 7,
+          "starting_outlook": "People think campus runs itself because they've never seen an invoice.",
+          "backstory_memory": "Signed a vendor invoice at 2am, ₹2.1 lakh over budget, because the show had to go on."
+        },
+        {
+          "id": "c4",
+          "name": "Rohit Saini",
+          "age": 20,
+          "role": "Second-year B.E. Civil, from Jhunjhunu, Kota-trained, the wing's fixer",
+          "voice_style": "Hinglish with Rajasthani flourishes: 'hukum', 'bhai scene set hai', 'ho jayega'",
+
+          "personality": "Hustler, helpful, funny. Keeps a mental ledger of every favour anyone has ever owed him.",
+          "core_values": ["being needed", "loyalty to his wing", "status"],
+          "constraints": [
+            "₹1,900 of the wing's pooled money is currently in his own mess dues",
+            "Dropped a year at Kota and still feels behind everyone",
+            "Parents ask about his CGPA before asking how he is"
+          ],
+          "stakes": "Staying the person the wing can't function without",
+          "rule_attitude": "Every rule has a jugaad; finding it is half the fun",
+          "social_role": "Connector: knows a guy for everything, and is the guy for his wing",
+          "change_tolerance": 0.60,
+          "triggers": ["being bypassed", "rules that kill workarounds", "people who don't pay him back"],
+          "soft_spots": ["group deals", "being thanked publicly", "a problem he gets to 'arrange'"],
+          "secret": "He's been using the wing's pooled money as a float, and ₹1,900 of it covered his own mess dues. He planned to quietly put it back. Anything that makes the wing collect or spend money sooner could expose the gap.",
+          "contradiction": "Tells everyone he hates being the one who handles everything, and would hate it more if someone else did.",
+          "line_wont_cross": "Letting the wing find out he dipped into the pool.",
+          "what_wins_them_back": "Being given a role in making it work: a group option, a deal, something to organise.",
+
+          "monthly_budget": 7800,
+          "notice_threshold": 0.10,
+          "pain_threshold": 0.06,
+          "loss_aversion": 2.2,
+          "fairness_weight": 0.40,
+          "price_anchor": 1.0,
+          "usage": { "default": 1, "fest pass": 5, "cup of chai": 60, "night canteen order": 17 },
+
+          "starting_trust": 5,
+          "starting_outlook": "Everything works if you know a guy, and I'm the guy.",
+          "backstory_memory": "Fronted ₹1,745 for five fest passes last year and is still chasing ₹698 from two people."
+        },
+        {
+          "id": "c5",
+          "name": "Sana Shaikh",
+          "age": 19,
+          "role": "Second-year M.Sc. Biological Sciences dual degree, from Margao, goes home every weekend",
+          "voice_style": "Goan-English, deadpan, 'ya ya, obviously', says very little about herself",
+
+          "personality": "Dry wit, observant, dependable. Runs two lives, campus Sana and home Sana, and lets neither see the other.",
+          "core_values": ["family", "doing things properly", "independence (which she'd never admit)"],
+          "constraints": [
+            "Leaves campus every Friday evening to run the family pharmacy in Margao on weekends",
+            "Must stay reachable by phone for her father during shop hours"
+          ],
+          "stakes": "Keeping both lives running without either side finding out how tired she is",
+          "rule_attitude": "Follows rules exactly and resents them silently",
+          "social_role": "Independent: friendly with everyone, close to almost no one",
+          "change_tolerance": 0.30,
+          "triggers": ["anything scheduled on weekends", "compulsory attendance at things", "being told 'just stay back for one weekend'"],
+          "soft_spots": ["flexibility", "recorded or remote options", "someone noticing that she's always gone"],
+          "secret": "Her parents assume she'll take over the pharmacy after graduating. She's been preparing for CAT at 1am and has told no one. Every weekend behind the counter feels like rehearsing a life she doesn't want.",
+          "contradiction": "Says weekends at home are 'chill, I like it', and counts the hours to Sunday night.",
+          "line_wont_cross": "Leaving her father alone at the counter on a Saturday.",
+          "what_wins_them_back": "Options that respect that she has a life off campus: flexibility, not favours.",
+
+          "monthly_budget": 3600,
+          "notice_threshold": 0.08,
+          "pain_threshold": 0.05,
+          "loss_aversion": 2.0,
+          "fairness_weight": 0.40,
+          "price_anchor": 1.0,
+          "usage": { "default": 1, "fest pass": 1, "cup of chai": 8, "night canteen order": 2 },
+
+          "starting_trust": 4,
+          "starting_outlook": "Campus is designed for people who never have to leave it.",
+          "backstory_memory": "Missed a whole club's Saturday selection round last semester because she was at the shop. Nobody asked why."
+        },
+        {
+          "id": "c6",
+          "name": "Tenzin Dorjee",
+          "age": 29,
+          "role": "PhD scholar in Chemistry, from Kalimpong, teaches two undergrad lab sections",
+          "voice_style": "Quiet, careful English, with dry jokes at his own expense",
+
+          "personality": "Gentle, self-deprecating, patient. Older than everyone in the room and acutely aware of it.",
+          "core_values": ["dignity", "belonging", "quiet"],
+          "constraints": [
+            "Fellowship ends in fourteen months; thesis has stalled",
+            "Sends ₹8,000 home every month",
+            "Teaches an 8am lab four days a week"
+          ],
+          "stakes": "Finishing the PhD before the money runs out, and not disappearing completely in the meantime",
+          "rule_attitude": "Follows rules politely; quietly hurt by rules that forget PhD scholars exist",
+          "social_role": "Outsider: stuck between students and faculty, fully part of neither",
+          "change_tolerance": 0.45,
+          "triggers": ["being treated as staff instead of a student", "policies written only for undergrads", "noise at 2am before his 8am lab"],
+          "soft_spots": ["being invited", "being asked for his opinion", "small kindnesses from undergrads"],
+          "secret": "His advisor hasn't properly replied to an email in two months. Campus events are the only times he feels like a student instead of a failure. He'd give a lot to be included, and would rather die than say so.",
+          "contradiction": "Says 'campus stuff is for the kids, I'm too old', and has the fest dates in his calendar since July.",
+          "line_wont_cross": "Going anywhere PhD scholars are made to feel like intruders.",
+          "what_wins_them_back": "Being included as a student, not a staff member: invited, asked, counted.",
+
+          "monthly_budget": 21000,
+          "notice_threshold": 0.50,
+          "pain_threshold": 0.20,
+          "loss_aversion": 1.2,
+          "fairness_weight": 0.60,
+          "price_anchor": 0.70,
+          "usage": { "default": 1, "fest pass": 1, "cup of chai": 35, "night canteen order": 4 },
+
+          "starting_trust": 4,
+          "starting_outlook": "I'm too old for most of this, which is exactly why I need it.",
+          "backstory_memory": "At last year's fest, a first-year asked if he was a professor, then quietly walked away."
+        }
+      ]
+    }
+  ]
+}
