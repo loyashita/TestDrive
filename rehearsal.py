@@ -266,7 +266,11 @@ def _validate_decision(d) -> str | None:
     d["decision_maker"] = d["decision_maker"].strip()[:100] if isinstance(d["decision_maker"], str) and d["decision_maker"].strip() else None
     if d["block"] not in ("none", "hateful", "harmful", "cheating"):
         return 'block must be one of "none", "hateful", "harmful", "cheating".'
-    d["safe"] = d["block"] == "none"
+    # Code, not the model, has the last word: only cheating and clearly harmful
+    # input are blocked. "hateful" (and any mislabelled group-differentiated
+    # policy, e.g. gender-specific curfews) always runs; the citizen prompt
+    # itself forbids slurs and demeaning output (GUARDRAILS 3.2).
+    d["safe"] = d["block"] not in ("cheating", "harmful")
     d["safety_reason"] = str(d.get("witty_reply") or "")[:240] or WITTY_FALLBACK[d["block"]]
     return None
 
