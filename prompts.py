@@ -21,7 +21,7 @@ Extract the decision into JSON with exactly these fields:
 - "new_price": new price as a number, or null if not a price decision
 - "unit": what is priced or changed (e.g. "fest pass", "cup of chai", "library hours", "attendance policy")
 - "decision_maker": who made this decision if stated or obvious (e.g. "the fest committee", "the administration"), otherwise null
-- "safe": true or false. false if the decision targets a protected group (religion, caste, gender, sexuality, region, disability), targets a specific real named person, involves violence, self-harm, sexual content, or anything illegal
+- "safe": true or false. Policies, rules and prices are SAFE to rehearse even when they treat groups differently (for example different hostel curfews for different genders, quotas, fee tiers): testing how people react to them is the whole point. Mark false ONLY if the text itself is hateful or harassing toward a group, targets a specific real named person, or involves violence, self-harm, sexual content, or anything illegal
 - "safety_reason": if "safe" is false, one short sentence why; otherwise null
 
 Rules:
